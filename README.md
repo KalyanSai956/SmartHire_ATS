@@ -1,1 +1,1 @@
-# SmartHire_ATS
+# SmartHire

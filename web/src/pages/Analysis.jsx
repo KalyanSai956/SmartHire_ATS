@@ -943,7 +943,7 @@ export default function Analysis() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-5 analysis-loading-page">
+      <div className="mx-auto max-w-4xl analysis-loading-page">
         <div className="analysis-loading-container">
           <aside className="loading-score-card">
             <h2>Your Score</h2>
@@ -1257,9 +1257,7 @@ export default function Analysis() {
           <div className="panel-header">
             <div>
               <h2>
-                {data.hasAdvancedATS
-                  ? "Advanced ATS Breakdown"
-                  : "Score Breakdown"}
+                {data.hasAdvancedATS ? "ATS Breakdown" : "Score Breakdown"}
               </h2>
 
               <p>

@@ -64,14 +64,36 @@ export default function Analyze() {
         },
       });
     } catch (err) {
-      setError(err.message || "Analysis failed.");
+      console.error("Resume analysis error:", err);
+
+      const message =
+        typeof err?.message === "string"
+          ? err.message
+          : typeof err?.detail === "string"
+            ? err.detail
+            : "";
+
+      if (
+        message === "[object Object]" ||
+        message.toLowerCase().includes("free resume") ||
+        message.toLowerCase().includes("resume analyses") ||
+        message.toLowerCase().includes("quota") ||
+        message.toLowerCase().includes("usage limit") ||
+        message.toLowerCase().includes("limit reached")
+      ) {
+        setError(
+          "Free resume analyses exhausted. Add your API key in AI Settings to continue.",
+        );
+      } else {
+        setError(message || "Analysis failed.");
+      }
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-5 page-shell">
+    <div className="mx-auto max-w-4xl px-6 py-5 page-shell">
       <section className="center-heading">
         <p className="eyebrow">ANALYZE YOUR RESUME</p>
       </section>
@@ -152,7 +174,7 @@ export default function Analyze() {
 
       <div className="analyze-actions">
         <button
-          className="button primary large"
+          className="button secondary large"
           onClick={submit}
           disabled={busy}
         >

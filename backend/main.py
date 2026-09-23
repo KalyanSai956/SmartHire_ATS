@@ -3,15 +3,15 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.api.interviews import router as interviews_router
-from backend.api.speech import router as speech_router
-from backend.api.interview_evaluation import (
-    router as interview_evaluation_router,
+
+from backend.api.llm_settings import (
+    router as llm_settings_router,
 )
-from backend.api.interview_adaptive import (
-    router as interview_adaptive_router,
+
+from backend.api.usage import (
+    router as usage_router,
 )
-from backend.api.interview_reports import router as interview_reports_router
+
 from backend.core.config import(
     ALLOWED_ORIGINS, 
     APP_DESCRIPTION, 
@@ -76,19 +76,12 @@ app.add_middleware(
 
 app.include_router(router)
 app.include_router(profile_router)
-app.include_router(interview_reports_router)
-app.include_router(interviews_router)
 app.include_router(
-    interview_evaluation_router
+    usage_router
 )
 app.include_router(
-    interview_adaptive_router
+    llm_settings_router
 )
-app.include_router(
-    speech_router,
-    prefix="/api/v1",
-)
-
 @app.get('/')
 async def root():
     return {

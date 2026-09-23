@@ -3,22 +3,24 @@ from typing import Any, Dict, List, Optional
 
 from backend.services.llm.base import (
     BaseLLMProvider,
+    LLMResponse,
 )
+
 from backend.services.llm.factory import (
     create_llm_provider,
 )
 
+from backend.services.llm.usage import (
+    record_llm_usage,
+)
 
-logger = logging.getLogger("smarthire.llm.gateway")
+
+logger = logging.getLogger(
+    "smarthire.llm.gateway"
+)
 
 
 class LLMGateway:
-    """
-    Central gateway for all SmartHire LLM operations.
-
-    Interview services should use this class rather than
-    talking directly to a provider.
-    """
 
     def __init__(
         self,
@@ -26,7 +28,11 @@ class LLMGateway:
         *,
         api_key: Optional[str] = None,
         model: Optional[str] = None,
+        user_id: Optional[str] = None,
+        feature: str = "general",
+        usage_source: str = "platform",
     ):
+
         self.provider: BaseLLMProvider = (
             create_llm_provider(
                 provider,
@@ -35,6 +41,40 @@ class LLMGateway:
             )
         )
 
+        self.user_id = user_id
+
+        self.feature = (
+            feature
+            or "general"
+        )
+
+        self.usage_source = (
+            usage_source
+            or "platform"
+        )
+
+    # ========================================================
+    # INTERNAL USAGE RECORDING
+    # ========================================================
+
+    async def _record_usage(
+    self,
+    response: LLMResponse,
+) -> None:
+
+        await record_llm_usage(
+        user_id=self.user_id,
+        usage=response.usage,
+        provider=response.provider,
+        model=response.model,
+        feature=self.feature,
+        usage_source=self.usage_source,
+    )
+
+    # ========================================================
+    # TEXT GENERATION
+    # ========================================================
+
     async def generate(
         self,
         messages: List[Dict[str, str]],
@@ -42,14 +82,24 @@ class LLMGateway:
         model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 1000,
-    ) -> str:
+    ) -> LLMResponse:
 
-        return await self.provider.generate(
+        response = await self.provider.generate(
             messages,
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
         )
+
+        await self._record_usage(
+            response
+        )
+
+        return response
+
+    # ========================================================
+    # JSON GENERATION
+    # ========================================================
 
     async def generate_json(
         self,
@@ -58,17 +108,37 @@ class LLMGateway:
         model: Optional[str] = None,
         temperature: float = 0.2,
         max_tokens: int = 1500,
-    ) -> Dict[str, Any]:
+    ) -> LLMResponse:
 
-        return await self.provider.generate_json(
+        response = await self.provider.generate_json(
             messages,
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
         )
 
-    def is_configured(self) -> bool:
+        await self._record_usage(
+            response
+        )
+
+        return response
+
+    # ========================================================
+    # CONFIGURATION
+    # ========================================================
+
+    def is_configured(
+        self,
+    ) -> bool:
+
         return self.provider.is_configured()
 
-    def get_provider_info(self) -> Dict[str, Any]:
+    # ========================================================
+    # PROVIDER INFO
+    # ========================================================
+
+    def get_provider_info(
+        self,
+    ) -> Dict[str, Any]:
+
         return self.provider.get_provider_info()

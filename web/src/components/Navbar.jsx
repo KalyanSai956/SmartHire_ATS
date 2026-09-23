@@ -15,9 +15,6 @@ export default function Navbar() {
   const links = [
     ["Dashboard", "/dashboard"],
     ["Resume ATS", "/analyze"],
-    ["Interview", "/interview/setup"],
-    ["Review", "/history"],
-    ["Interview History", "/interviews/history"],
   ];
 
   async function logout() {
@@ -33,14 +30,14 @@ export default function Navbar() {
     <header className="topbar">
       <div className="topbar-inner">
         {/* LEFT — LOGO */}
-        <Link to="/dashboard" className="brand">
-          <span className="brand-mark">
-            <Sparkles size={15} strokeWidth={2.5} />
-          </span>
-
-          <span className="brand-text">
-            Smart<span>Hire</span>
-          </span>
+        <Link to="/dashboard" className="brand" aria-label="SmartHire home">
+          <img
+            src="/hi-logo-nav.svg"
+            alt="SmartHire"
+            className="brand-logo"
+            width="34"
+            height="28"
+          />
         </Link>
 
         {/* CENTER — NAVIGATION */}
@@ -58,7 +55,6 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* RIGHT — USER + SIGN OUT */}
         <div className="topbar-actions">
           <span className="user-name">{name}</span>
 

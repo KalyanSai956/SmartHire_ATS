@@ -4,8 +4,6 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getProfile } from "../services/api";
 
-const ONBOARDING_CACHE_KEY = "smarthire_onboarding_completed";
-
 export default function ProfileRequired({ children }) {
   const { accessToken, session, loading: authLoading } = useAuth();
 
@@ -27,41 +25,18 @@ export default function ProfileRequired({ children }) {
         return;
       }
 
-      /*
-       * If this user has already completed onboarding during
-       * the current login session, don't unnecessarily redirect
-       * them while navigating between protected pages.
-       */
-      const cachedCompleted =
-        sessionStorage.getItem(ONBOARDING_CACHE_KEY) === "true";
-
-      if (cachedCompleted) {
-        if (active) {
-          setCompleted(true);
-          setLoading(false);
-        }
-
-        /*
-         * Still verify the profile in the background.
-         * If the request fails, we keep the cached completed state.
-         */
-        try {
-          const profile = await getProfile(accessToken);
-
-          if (!active) return;
-
-          if (profile?.onboarding_completed) {
-            sessionStorage.setItem(ONBOARDING_CACHE_KEY, "true");
-            setCompleted(true);
-          }
-        } catch (err) {
-          console.warn("Background profile verification failed:", err);
-        }
-
-        return;
-      }
-
       try {
+        /*
+         * Always check the actual profile from the backend.
+         *
+         * We intentionally do not rely on sessionStorage here.
+         * This makes onboarding persistence work across:
+         * - browser refresh
+         * - closing the browser
+         * - logging out
+         * - logging back in
+         * - different devices
+         */
         const profile = await getProfile(accessToken);
 
         if (!active) return;
@@ -69,13 +44,9 @@ export default function ProfileRequired({ children }) {
         const isCompleted = Boolean(profile?.onboarding_completed);
 
         setCompleted(isCompleted);
-
-        if (isCompleted) {
-          sessionStorage.setItem(ONBOARDING_CACHE_KEY, "true");
-        }
       } catch (err) {
         if (active) {
-          setError(err.message || "Could not load your profile.");
+          setError(err.message || "Could not load your career profile.");
         }
       } finally {
         if (active) {
@@ -94,7 +65,7 @@ export default function ProfileRequired({ children }) {
   }, [accessToken, session, authLoading]);
 
   /*
-   * Authentication is still loading.
+   * Authentication/profile loading.
    */
   if (authLoading || loading) {
     return (
@@ -132,8 +103,10 @@ export default function ProfileRequired({ children }) {
   }
 
   /*
-   * Only redirect to onboarding when we have actually
-   * confirmed that onboarding has not been completed.
+   * User has not completed onboarding.
+   *
+   * Onboarding.jsx will load the saved onboarding_step
+   * and restore the user's previous answers.
    */
   if (!completed) {
     return (

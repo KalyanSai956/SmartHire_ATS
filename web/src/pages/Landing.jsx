@@ -57,20 +57,18 @@ export default function Landing() {
           NAVBAR
           ===================================================== */}
 
-      <header className="mx-auto max-w-7xl px-4 py-3 landing-navbar">
-        <div className="landing-container landing-nav-inner">
+      <header className="landing-navbar">
+        <div className="mx-auto max-w-4xl px-4 py-3 landing-container landing-nav-inner">
           <div className="landing-brand-section">
-            <Link to="/" className="landing-brand">
-              <span className="landing-brand-mark">
-                <Sparkles size={17} />
-              </span>
-
-              <span>
-                Smart<span>Hire</span>
-              </span>
+            <Link to="/dashboard" className="brand" aria-label="SmartHire home">
+              <img
+                src="/smarthire.png"
+                alt="SmartHire"
+                className="brand-icon"
+                width="34"
+                height="34"
+              />
             </Link>
-
-            {/* GitHub Star Button */}
             <a
               href="https://github.com/KalyanSai956/SmartHire_ATS"
               target="_blank"
@@ -105,7 +103,7 @@ export default function Landing() {
 
             <button
               type="button"
-              className="landing-nav-button landing-auth-button"
+              className="landing-secondary-button  landing-auth-button"
               onClick={() => setAuthModal("signup")}
             >
               Get started
@@ -114,11 +112,6 @@ export default function Landing() {
           </div>
         </div>
       </header>
-
-      {/* =====================================================
-          HERO
-          ===================================================== */}
-
       <main>
         <section className="mx-auto max-w-5xl px-4 py-3 landing-hero">
           <div className="landing-container">
@@ -127,11 +120,23 @@ export default function Landing() {
                 Make every line
                 <span> Count.</span>
               </h1>
+              <div className="landing-hero-captions">
+                <span className="landing-hero-caption">
+                  AI Resume Intelligence
+                </span>
 
+                <span className="landing-hero-caption">
+                  Interview Preparation
+                </span>
+
+                <span className="landing-hero-caption">
+                  Smarter Career Decisions
+                </span>
+              </div>
               <div className="landing-hero-actions">
                 <button
                   type="button"
-                  className="landing-primary-button landing-auth-button"
+                  className="landing-secondary-button  landing-auth-button"
                   onClick={() => setAuthModal("signup")}
                 >
                   Analyze my resume
@@ -210,7 +215,7 @@ export default function Landing() {
 
         <section
           id="faq"
-          className="mx-auto max-w-5xl px-4 py-3 landing-section landing-faq"
+          className="mx-auto max-w-7xl px-3 py-4 landing-section landing-faq"
         >
           <div className="landing-container landing-faq-container">
             <div className="landing-section-heading">
@@ -252,14 +257,10 @@ export default function Landing() {
           FOOTER
           ===================================================== */}
 
-      <footer className="mx-auto max-w-5xl px-4 py-3 landing-footer">
+      <footer className="mx-auto max-w-4xl px-3 py-3 landing-footer">
         <div className="landing-container landing-footer-inner">
           <div className="landing-footer-brand">
             <Link to="/" className="landing-brand">
-              <span className="landing-brand-mark">
-                <Sparkles size={16} />
-              </span>
-
               <span>SmartHire</span>
             </Link>
 
@@ -270,11 +271,19 @@ export default function Landing() {
             <div>
               <strong>Account</strong>
 
-              <button type="button" onClick={() => setAuthModal("login")}>
+              <button
+                className="landing-secondary-button"
+                type="button"
+                onClick={() => setAuthModal("login")}
+              >
                 Login
               </button>
 
-              <button type="button" onClick={() => setAuthModal("signup")}>
+              <button
+                className="landing-secondary-button"
+                type="button"
+                onClick={() => setAuthModal("signup")}
+              >
                 Sign up
               </button>
             </div>

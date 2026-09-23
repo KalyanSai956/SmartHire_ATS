@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel,Field
 
@@ -257,28 +258,103 @@ class AnalysisResponse(BaseModel):
 
 class CareerProfile(BaseModel):
     username: str
-    skills: List[str] = []
-    target_roles: List[str] = []
+
+    career_interests: List[str] = Field(
+        default_factory=list
+    )
+
+    specializations: List[str] = Field(
+        default_factory=list
+    )
+
+    skills: List[str] = Field(
+        default_factory=list
+    )
+
+    target_roles: List[str] = Field(
+        default_factory=list
+    )
+
     experience: str = ""
+
+    graduation_year: Optional[int] = None
+
     resume_filename: Optional[str] = None
+
+    onboarding_step: int = 1
+
     onboarding_completed: bool = False
 
 
 class CareerProfileUpdate(BaseModel):
     username: str
-    skills: List[str] = []
-    target_roles: List[str] = []
+
+    career_interests: List[str] = Field(
+        default_factory=list
+    )
+
+    specializations: List[str] = Field(
+        default_factory=list
+    )
+
+    skills: List[str] = Field(
+        default_factory=list
+    )
+
+    target_roles: List[str] = Field(
+        default_factory=list
+    )
+
     experience: str = ""
 
+    graduation_year: Optional[int] = None
+class OnboardingProgressUpdate(BaseModel):
+    step: int
+
+    username: Optional[str] = None
+
+    career_interests: Optional[List[str]] = None
+
+    specializations: Optional[List[str]] = None
+
+    skills: Optional[List[str]] = None
+
+    target_roles: Optional[List[str]] = None
+
+    experience: Optional[str] = None
+
+    graduation_year: Optional[int] = None
 
 class CareerProfileResponse(BaseModel):
     user_id: str
+
     username: str
-    skills: List[str] = []
-    target_roles: List[str] = []
+
+    career_interests: List[str] = Field(
+        default_factory=list
+    )
+
+    specializations: List[str] = Field(
+        default_factory=list
+    )
+
+    skills: List[str] = Field(
+        default_factory=list
+    )
+
+    target_roles: List[str] = Field(
+        default_factory=list
+    )
+
     experience: str = ""
+
+    graduation_year: Optional[int] = None
+
     resume_filename: Optional[str] = None
-    onboarding_completed: bool = False  
+
+    onboarding_step: int = 1
+
+    onboarding_completed: bool = False
 
 
 class JDExperienceRequirement(BaseModel):
@@ -351,4 +427,4 @@ class AIRecommendationResult(BaseModel):
 
     total_recommendations: int = 0
 
-    
+

@@ -136,6 +136,43 @@ async def supabase_rest_patch(
             f"Supabase PATCH failed for {table}: {exc}"
         )
         raise
+async def supabase_rest_delete(
+    table: str,
+    params: Optional[Dict] = None,
+) -> List[Dict[str, Any]]:
+    headers = _get_headers()
+
+    if not headers:
+        raise RuntimeError(
+            "Supabase database configuration is not available."
+        )
+
+    headers = {
+        **headers,
+        "Prefer": "return=representation",
+    }
+
+    url = _get_rest_url(table)
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.delete(
+                url,
+                headers=headers,
+                params=params or {},
+            )
+
+            response.raise_for_status()
+
+            result = response.json()
+
+            return result if isinstance(result, list) else []
+
+    except Exception as exc:
+        logger.error(
+            f"Supabase DELETE failed for {table}: {exc}"
+        )
+        raise
 async def save_analysis(user_id: str, filename: str, analysis_result: Dict) -> Optional[str]:
     headers = _get_headers()
     if not headers:
@@ -211,6 +248,39 @@ async def get_user_history(user_id: str) -> List[Dict]:
     except Exception as exc:
         logger.error(f"Failed to fetch history from Supabase: {exc}")
         return []
+# ============================================================
+# PHASE 7B — FREE QUOTA COUNTERS
+# ============================================================
+
+async def count_user_resume_analyses(
+    user_id: str,
+) -> int:
+    """
+    Count successful resume analyses for a user.
+
+    The existing `analyses` table is used as the source of truth.
+    """
+
+    try:
+
+        rows = await supabase_rest_get(
+            "analyses",
+            {
+                "user_id": f"eq.{user_id}",
+                "select": "id",
+            },
+        )
+
+        return len(rows or [])
+
+    except Exception as exc:
+
+        logger.exception(
+            "Failed to count resume analyses for user %s",
+            user_id,
+        )
+
+        raise
 
 async def delete_analysis(analysis_id: str, user_id: str) -> bool:
     headers = _get_headers()
@@ -274,10 +344,14 @@ async def get_user_profile(
 async def upsert_user_profile(
     user_id: str,
     username: str,
+    career_interests: List[str],
+    specializations: List[str],
     skills: List[str],
     target_roles: List[str],
     experience: str,
+    graduation_year: Optional[int],
     onboarding_completed: bool = False,
+    onboarding_step: int = 1,
 ) -> Optional[Dict]:
 
     headers = _get_headers()
@@ -287,19 +361,29 @@ async def upsert_user_profile(
 
     headers = {
         **headers,
-        "Prefer": "resolution=merge-duplicates,return=representation",
+        "Prefer": (
+            "resolution=merge-duplicates,"
+            "return=representation"
+        ),
     }
 
-    url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/profiles"
+    url = (
+        f"{SUPABASE_URL.rstrip('/')}"
+        "/rest/v1/profiles"
+    )
 
     doc = {
-        "user_id": user_id,
-        "username": username,
-        "skills": skills,
-        "target_roles": target_roles,
-        "experience": experience,
-        "onboarding_completed": onboarding_completed,
-    }
+    "user_id": user_id,
+    "username": username,
+    "career_interests": career_interests,
+    "specializations": specializations,
+    "skills": skills,
+    "target_roles": target_roles,
+    "experience": experience,
+    "graduation_year": graduation_year,
+    "onboarding_completed": onboarding_completed,
+    "onboarding_step": onboarding_step,
+}
 
     try:
         async with httpx.AsyncClient() as client:
@@ -322,9 +406,141 @@ async def upsert_user_profile(
         logger.error(
             f"Failed to save profile for {user_id}: {exc}"
         )
+
         return None
 
+async def save_onboarding_progress(
+    user_id: str,
+    step: int,
+    username: Optional[str] = None,
+    career_interests: Optional[List[str]] = None,
+    specializations: Optional[List[str]] = None,
+    skills: Optional[List[str]] = None,
+    target_roles: Optional[List[str]] = None,
+    experience: Optional[str] = None,
+    graduation_year: Optional[int] = None,
+) -> Optional[Dict]:
+    """
+    Persist incomplete onboarding progress.
 
+    Creates the profile if it does not exist.
+    Only fields explicitly provided are updated.
+    onboarding_completed remains unchanged.
+    """
+
+    headers = _get_headers()
+
+    if not headers:
+        return None
+
+    if step < 1 or step > 7:
+        raise ValueError(
+            "Onboarding step must be between 1 and 7."
+        )
+
+    try:
+        existing = await get_user_profile(user_id)
+
+        if existing is None:
+            doc = {
+                "user_id": user_id,
+                "username": username or "",
+                "career_interests": career_interests or [],
+                "specializations": specializations or [],
+                "skills": skills or [],
+                "target_roles": target_roles or [],
+                "experience": experience or "",
+                "graduation_year": graduation_year,
+                "onboarding_step": step,
+                "onboarding_completed": False,
+            }
+
+            headers_upsert = {
+                **headers,
+                "Prefer": (
+                    "resolution=merge-duplicates,"
+                    "return=representation"
+                ),
+            }
+
+            url = (
+                f"{SUPABASE_URL.rstrip('/')}"
+                "/rest/v1/profiles"
+            )
+
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url,
+                    headers=headers_upsert,
+                    json=doc,
+                )
+
+                response.raise_for_status()
+
+                data = response.json()
+
+                if data:
+                    return data[0]
+
+                return None
+
+        headers_patch = {
+            **headers,
+            "Prefer": "return=representation",
+        }
+
+        url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/profiles"
+
+        doc = {
+            "onboarding_step": step,
+        }
+
+        if username is not None:
+            doc["username"] = username
+
+        if career_interests is not None:
+            doc["career_interests"] = career_interests
+
+        if specializations is not None:
+            doc["specializations"] = specializations
+
+        if skills is not None:
+            doc["skills"] = skills
+
+        if target_roles is not None:
+            doc["target_roles"] = target_roles
+
+        if experience is not None:
+            doc["experience"] = experience
+
+        if graduation_year is not None:
+            doc["graduation_year"] = graduation_year
+
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(
+                url,
+                headers=headers_patch,
+                params={
+                    "user_id": f"eq.{user_id}",
+                },
+                json=doc,
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            if data:
+                return data[0]
+
+            return None
+
+    except Exception as exc:
+        logger.error(
+            f"Failed to save onboarding progress for {user_id}: {exc}"
+        )
+
+        return None
 async def update_profile_resume(
     user_id: str,
     filename: str,
@@ -400,8 +616,9 @@ async def mark_onboarding_completed(
                     "user_id": f"eq.{user_id}",
                 },
                 json={
-                    "onboarding_completed": True,
-                },
+    "onboarding_completed": True,
+    "onboarding_step": 7,
+},
             )
 
             response.raise_for_status()
@@ -512,3 +729,213 @@ async def supabase_rest_patch(
             return result
 
         return []
+
+# ============================================================
+# LLM USAGE
+# ============================================================
+
+
+async def save_llm_usage(
+    *,
+    user_id: str,
+    provider: str,
+    model: str,
+    feature: str,
+    usage_source: str = "platform",
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    total_tokens: int = 0,
+    request_id: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+
+    row = {
+        "user_id": str(user_id),
+        "provider": str(provider),
+        "model": str(model),
+        "feature": str(feature),
+        "usage_source": str(
+            usage_source
+            or "platform"
+        ),
+        "input_tokens": max(
+            0,
+            int(input_tokens or 0),
+        ),
+        "output_tokens": max(
+            0,
+            int(output_tokens or 0),
+        ),
+        "total_tokens": max(
+            0,
+            int(total_tokens or 0),
+        ),
+        "request_id": request_id,
+    }
+
+    return await supabase_rest_post(
+        "llm_usage",
+        [row],
+    )
+# ============================================================
+# PHASE 7C — USER LLM CREDENTIALS
+# ============================================================
+
+async def save_user_llm_credential(
+    user_id: str,
+    provider: str,
+    encrypted_api_key: str,
+    key_last4: str,
+    model: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+
+    data = {
+        "user_id": user_id,
+        "provider": provider,
+        "encrypted_api_key": encrypted_api_key,
+        "key_last4": key_last4,
+        "model": model,
+    }
+
+    try:
+
+        rows = await supabase_rest_post(
+            "user_llm_credentials",
+            data,
+        )
+
+        return (
+            rows[0]
+            if rows
+            else None
+        )
+
+    except Exception as exc:
+
+        logger.exception(
+            "Failed to save LLM credential."
+        )
+
+        raise
+
+
+async def update_user_llm_credential(
+    user_id: str,
+    provider: str,
+    encrypted_api_key: str,
+    key_last4: str,
+    model: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+
+    data = {
+        "encrypted_api_key": encrypted_api_key,
+        "key_last4": key_last4,
+        "model": model,
+        "updated_at": datetime.now(
+            timezone.utc
+        ).isoformat(),
+    }
+
+    try:
+
+        rows = await supabase_rest_patch(
+            "user_llm_credentials",
+            {
+                "user_id": f"eq.{user_id}",
+                "provider": f"eq.{provider}",
+            },
+            data,
+        )
+
+        return (
+            rows[0]
+            if rows
+            else None
+        )
+
+    except Exception as exc:
+
+        logger.exception(
+            "Failed to update LLM credential."
+        )
+
+        raise
+
+
+async def get_user_llm_credentials(
+    user_id: str,
+) -> List[Dict[str, Any]]:
+
+    try:
+
+        return await supabase_rest_get(
+            "user_llm_credentials",
+            {
+                "user_id": f"eq.{user_id}",
+                "order": "provider.asc",
+            },
+        )
+
+    except Exception as exc:
+
+        logger.exception(
+            "Failed to load LLM credentials."
+        )
+
+        raise
+
+
+async def get_user_llm_credential(
+    user_id: str,
+    provider: str,
+) -> Optional[Dict[str, Any]]:
+
+    try:
+
+        rows = await supabase_rest_get(
+            "user_llm_credentials",
+            {
+                "user_id": f"eq.{user_id}",
+                "provider": f"eq.{provider}",
+                "limit": "1",
+            },
+        )
+
+        return (
+            rows[0]
+            if rows
+            else None
+        )
+
+    except Exception as exc:
+
+        logger.exception(
+            "Failed to load LLM credential."
+        )
+
+        raise
+
+
+async def delete_user_llm_credential(
+    user_id: str,
+    provider: str,
+) -> bool:
+
+    try:
+
+        rows = await supabase_rest_delete(
+            "user_llm_credentials",
+            {
+                "user_id": f"eq.{user_id}",
+                "provider": f"eq.{provider}",
+            },
+        )
+
+        return bool(rows)
+
+    except Exception as exc:
+
+        logger.exception(
+            "Failed to delete LLM credential."
+        )
+
+        raise

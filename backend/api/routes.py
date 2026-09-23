@@ -11,7 +11,10 @@ from fastapi import (
     Request,
     UploadFile,
 )
-
+from backend.services.llm.quota import (
+    FreeQuotaExceededError,
+    require_free_quota_or_byok,
+)
 from backend.api.auth import get_current_user
 
 from backend.models.schemas import (
@@ -68,7 +71,54 @@ async def analyze_resume(
     ),
     user_id: str = Depends(get_current_user),
 ):
+      # ============================================================
+    # PHASE 7B — FREE RESUME ANALYSIS QUOTA
+    # ============================================================
 
+    try:
+
+        await require_free_quota_or_byok(
+            user_id=user_id,
+            feature="resume_analysis",
+        )
+
+    except FreeQuotaExceededError as exc:
+
+        logger.info(
+            "Resume analysis quota exhausted for user=%s",
+            user_id,
+        )
+
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "RESUME_FREE_QUOTA_EXCEEDED",
+                "message": (
+                    "You have used all 3 free resume analyses. "
+                    "Connect your own AI provider API key "
+                    "to continue analyzing resumes."
+                ),
+                "feature": "resume_analysis",
+                "used": exc.used,
+                "limit": exc.limit,
+                "remaining": 0,
+            },
+        ) from exc
+
+    except Exception as exc:
+
+        logger.exception(
+            "Resume analysis quota check failed."
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Could not verify resume analysis usage quota."
+            ),
+        ) from exc
+
+    warnings: List[str] = []
     warnings: List[str] = []
 
     nlp = request.app.state.nlp

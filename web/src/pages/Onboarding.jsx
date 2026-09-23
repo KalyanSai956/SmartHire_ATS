@@ -1,19 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
+  Briefcase,
   Check,
   FileText,
+  GraduationCap,
   Plus,
-  Sparkles,
+  Target,
   Upload,
   X,
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
+
 import {
+  analyzeResume,
   completeOnboarding,
-  updateProfile,
+  getProfile,
+  saveOnboardingProgress,
   uploadProfileResume,
 } from "../services/api";
 
@@ -26,8 +31,33 @@ const EXPERIENCE_OPTIONS = [
   "5+ years",
 ];
 
+const INTEREST_SUGGESTIONS = [
+  "Artificial Intelligence",
+  "Machine Learning",
+  "Software Development",
+  "Data Science",
+  "Web Development",
+  "Backend Engineering",
+  "Cloud & DevOps",
+  "Cybersecurity",
+];
+
+const SPECIALIZATION_SUGGESTIONS = [
+  "AI/ML",
+  "Generative AI",
+  "NLP",
+  "Computer Vision",
+  "Full Stack",
+  "Backend",
+  "Frontend",
+  "Data Engineering",
+];
+
+const TOTAL_STEPS = 7;
+
 export default function Onboarding() {
   const navigate = useNavigate();
+
   const { accessToken, user } = useAuth();
 
   const [step, setStep] = useState(1);
@@ -36,6 +66,12 @@ export default function Onboarding() {
     user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
   );
 
+  const [careerInterests, setCareerInterests] = useState([]);
+  const [interestInput, setInterestInput] = useState("");
+
+  const [specializations, setSpecializations] = useState([]);
+  const [specializationInput, setSpecializationInput] = useState("");
+
   const [skills, setSkills] = useState([]);
   const [skillInput, setSkillInput] = useState("");
 
@@ -43,65 +79,191 @@ export default function Onboarding() {
   const [roleInput, setRoleInput] = useState("");
 
   const [experience, setExperience] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
 
   const [resume, setResume] = useState(null);
 
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  function addSkill() {
-    const value = skillInput.trim();
+  /*
+   * ----------------------------------------------------
+   * LOAD SAVED ONBOARDING PROGRESS
+   * ----------------------------------------------------
+   */
+  useEffect(() => {
+    let active = true;
+
+    async function loadProfile() {
+      if (!accessToken) {
+        if (active) {
+          setLoadingProfile(false);
+        }
+
+        return;
+      }
+
+      try {
+        const profile = await getProfile(accessToken);
+
+        if (!active) return;
+
+        /*
+         * If onboarding is already completed,
+         * the user does not need to see onboarding again.
+         */
+        if (profile?.onboarding_completed) {
+          navigate("/dashboard", {
+            replace: true,
+          });
+
+          return;
+        }
+
+        /*
+         * Restore the exact saved step.
+         */
+        const savedStep = Number(profile?.onboarding_step);
+
+        if (
+          Number.isInteger(savedStep) &&
+          savedStep >= 1 &&
+          savedStep <= TOTAL_STEPS
+        ) {
+          setStep(savedStep);
+        }
+
+        /*
+         * Restore saved profile information.
+         */
+        if (profile?.username) {
+          setUsername(profile.username);
+        }
+
+        if (Array.isArray(profile?.career_interests)) {
+          setCareerInterests(profile.career_interests);
+        }
+
+        if (Array.isArray(profile?.specializations)) {
+          setSpecializations(profile.specializations);
+        }
+
+        if (Array.isArray(profile?.skills)) {
+          setSkills(profile.skills);
+        }
+
+        if (Array.isArray(profile?.target_roles)) {
+          setTargetRoles(profile.target_roles);
+        }
+
+        if (profile?.experience) {
+          setExperience(profile.experience);
+        }
+
+        if (profile?.graduation_year) {
+          setGraduationYear(String(profile.graduation_year));
+        }
+      } catch (err) {
+        console.error("Failed to load onboarding progress:", err);
+
+        if (active) {
+          setError(
+            err.message || "Could not load your saved onboarding progress.",
+          );
+        }
+      } finally {
+        if (active) {
+          setLoadingProfile(false);
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      active = false;
+    };
+  }, [accessToken, navigate]);
+
+  /*
+   * ----------------------------------------------------
+   * HELPERS
+   * ----------------------------------------------------
+   */
+
+  function addUniqueValue(input, setter, setInput) {
+    const value = input.trim();
 
     if (!value) return;
 
-    const exists = skills.some(
-      (skill) => skill.toLowerCase() === value.toLowerCase(),
-    );
+    setter((current) => {
+      const exists = current.some(
+        (item) => item.toLowerCase() === value.toLowerCase(),
+      );
 
-    if (!exists) {
-      setSkills((current) => [...current, value]);
-    }
+      if (exists) {
+        return current;
+      }
 
-    setSkillInput("");
+      return [...current, value];
+    });
+
+    setInput("");
   }
 
-  function removeSkill(skill) {
-    setSkills((current) => current.filter((item) => item !== skill));
+  function removeValue(value, setter) {
+    setter((current) => current.filter((item) => item !== value));
+  }
+
+  function handleEnter(event, callback) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      callback();
+    }
+  }
+
+  function addInterest() {
+    addUniqueValue(interestInput, setCareerInterests, setInterestInput);
+  }
+
+  function addSpecialization() {
+    addUniqueValue(
+      specializationInput,
+      setSpecializations,
+      setSpecializationInput,
+    );
+  }
+
+  function addSkill() {
+    addUniqueValue(skillInput, setSkills, setSkillInput);
   }
 
   function addRole() {
-    const value = roleInput.trim();
-
-    if (!value) return;
-
-    const exists = targetRoles.some(
-      (role) => role.toLowerCase() === value.toLowerCase(),
-    );
-
-    if (!exists) {
-      setTargetRoles((current) => [...current, value]);
-    }
-
-    setRoleInput("");
+    addUniqueValue(roleInput, setTargetRoles, setRoleInput);
   }
 
-  function removeRole(role) {
-    setTargetRoles((current) => current.filter((item) => item !== role));
+  function toggleSuggestion(value, values, setter) {
+    setter((current) => {
+      const exists = current.some(
+        (item) => item.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        return current.filter(
+          (item) => item.toLowerCase() !== value.toLowerCase(),
+        );
+      }
+
+      return [...current, value];
+    });
   }
 
-  function handleSkillKeyDown(event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addSkill();
-    }
-  }
-
-  function handleRoleKeyDown(event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addRole();
-    }
-  }
+  /*
+   * ----------------------------------------------------
+   * VALIDATION
+   * ----------------------------------------------------
+   */
 
   function validateStep() {
     setError("");
@@ -119,27 +281,53 @@ export default function Onboarding() {
     }
 
     if (step === 2) {
+      if (!careerInterests.length) {
+        setError("Add at least one career interest.");
+        return false;
+      }
+    }
+
+    if (step === 3) {
+      if (!specializations.length) {
+        setError("Add at least one specialization.");
+        return false;
+      }
+    }
+
+    if (step === 4) {
       if (!skills.length) {
         setError("Add at least one skill.");
         return false;
       }
     }
 
-    if (step === 3) {
+    if (step === 5) {
       if (!targetRoles.length) {
         setError("Add at least one target role.");
         return false;
       }
     }
 
-    if (step === 4) {
+    if (step === 6) {
       if (!experience) {
         setError("Please select your experience level.");
         return false;
       }
+
+      const year = Number(graduationYear);
+
+      if (
+        !graduationYear ||
+        !Number.isInteger(year) ||
+        year < 1950 ||
+        year > 2100
+      ) {
+        setError("Please enter a valid graduation year.");
+        return false;
+      }
     }
 
-    if (step === 5) {
+    if (step === 7) {
       if (!resume) {
         setError("Please upload your resume.");
         return false;
@@ -149,52 +337,152 @@ export default function Onboarding() {
     return true;
   }
 
+  /*
+   * ----------------------------------------------------
+   * SAVE CURRENT ONBOARDING PROGRESS
+   * ----------------------------------------------------
+   */
+  async function saveCurrentProgress(nextStep) {
+    await saveOnboardingProgress({
+      step: nextStep,
+      username: username.trim(),
+      careerInterests,
+      specializations,
+      skills,
+      targetRoles,
+      experience,
+      graduationYear: graduationYear === "" ? null : Number(graduationYear),
+      token: accessToken,
+    });
+  }
+
+  /*
+   * ----------------------------------------------------
+   * NEXT STEP
+   * ----------------------------------------------------
+   */
   async function nextStep() {
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      return;
+    }
 
     setBusy(true);
     setError("");
 
     try {
-      if (step === 4) {
-        await updateProfile({
-          username: username.trim(),
-          skills,
-          targetRoles,
-          experience,
-          token: accessToken,
-        });
-      }
+      /*
+       * Step 1 -> 2
+       * Step 2 -> 3
+       * ...
+       * Step 6 -> 7
+       *
+       * Save the CURRENT data while recording
+       * the NEXT step.
+       */
+      if (step < TOTAL_STEPS) {
+        const nextStepNumber = step + 1;
 
-      if (step === 5) {
-        await uploadProfileResume({
-          file: resume,
-          token: accessToken,
-        });
+        await saveCurrentProgress(nextStepNumber);
 
-        await completeOnboarding(accessToken);
+        setStep(nextStepNumber);
 
-        sessionStorage.setItem("smarthire_onboarding_completed", "true");
-
-        navigate("/dashboard", {
-          replace: true,
-        });
         return;
       }
 
-      setStep((current) => current + 1);
+      /*
+       * ------------------------------------------------
+       * STEP 7
+       * ------------------------------------------------
+       */
+
+      /*
+       * 1. Save the complete profile information.
+       *
+       * The backend already has the progress from
+       * previous steps.
+       */
+
+      await saveOnboardingProgress({
+        step: 7,
+        username: username.trim(),
+        careerInterests,
+        specializations,
+        skills,
+        targetRoles,
+        experience,
+        graduationYear: Number(graduationYear),
+        token: accessToken,
+      });
+
+      /*
+       * 2. Upload the exact resume selected by
+       * the user.
+       */
+      await uploadProfileResume({
+        file: resume,
+        token: accessToken,
+      });
+
+      /*
+       * 3. Mark onboarding complete.
+       */
+      await completeOnboarding(accessToken);
+
+      /*
+       * 4. Analyze the exact resume.
+       */
+      const analysis = await analyzeResume({
+        file: resume,
+        jobDescription: "",
+        token: accessToken,
+      });
+
+      /*
+       * 5. Keep the existing cache for any other
+       * part of the application that may still use it.
+       */
+      sessionStorage.setItem("smarthire_onboarding_completed", "true");
+
+      /*
+       * 6. Go directly to the analysis page.
+       */
+      navigate("/analysis/new", {
+        replace: true,
+        state: {
+          analysis,
+          filename: resume.name,
+          isNew: true,
+          fromOnboarding: true,
+        },
+      });
     } catch (err) {
+      console.error("Onboarding error:", err);
+
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setBusy(false);
     }
   }
 
+  /*
+   * ----------------------------------------------------
+   * PREVIOUS STEP
+   * ----------------------------------------------------
+   *
+   * We do not save here because the current step
+   * was already persisted when the user entered it.
+   */
   function previousStep() {
     setError("");
+
     setStep((current) => Math.max(1, current - 1));
   }
 
+  /*
+   * ----------------------------------------------------
+   * RESUME UPLOAD
+   * ----------------------------------------------------
+   */
   function handleResumeChange(event) {
     const file = event.target.files?.[0];
 
@@ -221,22 +509,52 @@ export default function Onboarding() {
     setResume(file);
   }
 
-  const progress = `${(step / 5) * 100}%`;
+  const progress = `${(step / TOTAL_STEPS) * 100}%`;
 
+  /*
+   * ----------------------------------------------------
+   * PROFILE LOADING SCREEN
+   * ----------------------------------------------------
+   */
+  if (loadingProfile) {
+    return (
+      <div className="route-loader">
+        <span className="loading-spinner" />
+        <span>Restoring your career profile...</span>
+      </div>
+    );
+  }
+
+  /*
+   * ----------------------------------------------------
+   * UI
+   * ----------------------------------------------------
+   */
   return (
-    <div className="mx-auto max-w-5xl px-6 py-5 onboarding-page">
+    <div className="mx-auto max-w-4xl px-5 py-3 onboarding-page">
       <div className="onboarding-top">
         <div className="brand">
-          <span className="brand-mark">
-            <Sparkles size={17} />
-          </span>
-
-          <span>
-            Smart<span>Hire</span>
-          </span>
+          <img
+            src="/hi-logo-nav.svg"
+            alt="SmartHire"
+            className="brand-logo"
+            width="34"
+            height="28"
+          />
         </div>
 
-        <span className="onboarding-step">Step {step} of 5</span>
+        <span className="onboarding-step">
+          Step {step} of {TOTAL_STEPS}
+        </span>
+      </div>
+
+      <div className="onboarding-progress">
+        <div
+          className="onboarding-progress-fill"
+          style={{
+            width: progress,
+          }}
+        />
       </div>
 
       <main className="onboarding-content">
@@ -245,14 +563,10 @@ export default function Onboarding() {
         </div>
 
         <section className="onboarding-card">
+          {/* STEP 1 */}
           {step === 1 && (
             <div className="onboarding-section">
               <h2>What should we call you?</h2>
-
-              <p>
-                Choose the name you'd like SmartHire to use throughout your
-                career workspace.
-              </p>
 
               <label className="auth-field">
                 <span>Username</span>
@@ -261,7 +575,7 @@ export default function Onboarding() {
                   <input
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
-                    placeholder="e.g. Tony Stark"
+                    placeholder="e.g. Sai Kalyan"
                     autoFocus
                   />
                 </div>
@@ -269,7 +583,165 @@ export default function Onboarding() {
             </div>
           )}
 
+          {/* STEP 2 */}
           {step === 2 && (
+            <div className="onboarding-section">
+              <span className="onboarding-icon">
+                <Target size={22} />
+              </span>
+
+              <h2>What are you interested in?</h2>
+
+              <p>Tell SmartHire the career areas you want to explore.</p>
+
+              <div className="suggestion-grid">
+                {INTEREST_SUGGESTIONS.map((item) => {
+                  const selected = careerInterests.some(
+                    (value) => value.toLowerCase() === item.toLowerCase(),
+                  );
+
+                  return (
+                    <button
+                      type="button"
+                      key={item}
+                      className={
+                        selected
+                          ? "suggestion-chip selected"
+                          : "suggestion-chip"
+                      }
+                      onClick={() =>
+                        toggleSuggestion(
+                          item,
+                          careerInterests,
+                          setCareerInterests,
+                        )
+                      }
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="tag-input">
+                <input
+                  value={interestInput}
+                  onChange={(event) => setInterestInput(event.target.value)}
+                  onKeyDown={(event) => handleEnter(event, addInterest)}
+                  placeholder="Other career interest..."
+                  autoFocus
+                />
+
+                <button
+                  type="button"
+                  className="button secondary"
+                  onClick={addInterest}
+                >
+                  <Plus size={16} />
+                  Add
+                </button>
+              </div>
+
+              <div className="onboarding-tags">
+                {careerInterests.map((item) => (
+                  <span className="onboarding-tag" key={item}>
+                    {item}
+
+                    <button
+                      type="button"
+                      onClick={() => removeValue(item, setCareerInterests)}
+                    >
+                      <X size={13} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3 */}
+          {step === 3 && (
+            <div className="onboarding-section">
+              <span className="onboarding-icon">
+                <Briefcase size={22} />
+              </span>
+
+              <h2>What is your specialization?</h2>
+
+              <p>
+                Select the technical areas you want SmartHire to use when
+                finding opportunities.
+              </p>
+
+              <div className="suggestion-grid">
+                {SPECIALIZATION_SUGGESTIONS.map((item) => {
+                  const selected = specializations.some(
+                    (value) => value.toLowerCase() === item.toLowerCase(),
+                  );
+
+                  return (
+                    <button
+                      type="button"
+                      key={item}
+                      className={
+                        selected
+                          ? "suggestion-chip selected"
+                          : "suggestion-chip"
+                      }
+                      onClick={() =>
+                        toggleSuggestion(
+                          item,
+                          specializations,
+                          setSpecializations,
+                        )
+                      }
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="tag-input">
+                <input
+                  value={specializationInput}
+                  onChange={(event) =>
+                    setSpecializationInput(event.target.value)
+                  }
+                  onKeyDown={(event) => handleEnter(event, addSpecialization)}
+                  placeholder="Other specialization..."
+                  autoFocus
+                />
+
+                <button
+                  type="button"
+                  className="button secondary"
+                  onClick={addSpecialization}
+                >
+                  <Plus size={16} />
+                  Add
+                </button>
+              </div>
+
+              <div className="onboarding-tags">
+                {specializations.map((item) => (
+                  <span className="onboarding-tag" key={item}>
+                    {item}
+
+                    <button
+                      type="button"
+                      onClick={() => removeValue(item, setSpecializations)}
+                    >
+                      <X size={13} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4 */}
+          {step === 4 && (
             <div className="onboarding-section">
               <span className="onboarding-icon">
                 <Plus size={22} />
@@ -277,16 +749,13 @@ export default function Onboarding() {
 
               <h2>What skills do you have?</h2>
 
-              <p>
-                Add your current technical and professional skills. You can add
-                as many as you want.
-              </p>
+              <p>Add your current technical and professional skills.</p>
 
               <div className="tag-input">
                 <input
                   value={skillInput}
                   onChange={(event) => setSkillInput(event.target.value)}
-                  onKeyDown={handleSkillKeyDown}
+                  onKeyDown={(event) => handleEnter(event, addSkill)}
                   placeholder="Python, React, FastAPI..."
                   autoFocus
                 />
@@ -306,7 +775,10 @@ export default function Onboarding() {
                   <span className="onboarding-tag" key={skill}>
                     {skill}
 
-                    <button type="button" onClick={() => removeSkill(skill)}>
+                    <button
+                      type="button"
+                      onClick={() => removeValue(skill, setSkills)}
+                    >
                       <X size={13} />
                     </button>
                   </span>
@@ -315,7 +787,8 @@ export default function Onboarding() {
             </div>
           )}
 
-          {step === 3 && (
+          {/* STEP 5 */}
+          {step === 5 && (
             <div className="onboarding-section">
               <span className="onboarding-icon">
                 <ArrowRight size={22} />
@@ -329,7 +802,7 @@ export default function Onboarding() {
                 <input
                   value={roleInput}
                   onChange={(event) => setRoleInput(event.target.value)}
-                  onKeyDown={handleRoleKeyDown}
+                  onKeyDown={(event) => handleEnter(event, addRole)}
                   placeholder="AI Engineer, Software Engineer..."
                   autoFocus
                 />
@@ -349,7 +822,10 @@ export default function Onboarding() {
                   <span className="onboarding-tag" key={role}>
                     {role}
 
-                    <button type="button" onClick={() => removeRole(role)}>
+                    <button
+                      type="button"
+                      onClick={() => removeValue(role, setTargetRoles)}
+                    >
                       <X size={13} />
                     </button>
                   </span>
@@ -358,18 +834,16 @@ export default function Onboarding() {
             </div>
           )}
 
-          {step === 4 && (
+          {/* STEP 6 */}
+          {step === 6 && (
             <div className="onboarding-section">
               <span className="onboarding-icon">
-                <Check size={22} />
+                <GraduationCap size={22} />
               </span>
 
-              <h2>What's your experience level?</h2>
+              <h2>Tell us about your experience</h2>
 
-              <p>
-                This helps SmartHire understand which opportunities and
-                interview difficulty are appropriate for you.
-              </p>
+              <p>This helps SmartHire match jobs.</p>
 
               <div className="experience-options">
                 {EXPERIENCE_OPTIONS.map((option) => (
@@ -389,10 +863,26 @@ export default function Onboarding() {
                   </button>
                 ))}
               </div>
+
+              <label className="auth-field">
+                <span>Graduation Year</span>
+
+                <div>
+                  <input
+                    type="number"
+                    min="1950"
+                    max="2100"
+                    value={graduationYear}
+                    onChange={(event) => setGraduationYear(event.target.value)}
+                    placeholder="2026"
+                  />
+                </div>
+              </label>
             </div>
           )}
 
-          {step === 5 && (
+          {/* STEP 7 */}
+          {step === 7 && (
             <div className="onboarding-section">
               <span className="onboarding-icon">
                 <FileText size={22} />
@@ -457,9 +947,11 @@ export default function Onboarding() {
               disabled={busy}
             >
               {busy
-                ? "Saving..."
-                : step === 5
-                  ? "Complete Profile"
+                ? step === 7
+                  ? "Analyzing resume..."
+                  : "Saving..."
+                : step === 7
+                  ? "Analyze Resume"
                   : "Continue"}
 
               <ArrowRight size={16} />

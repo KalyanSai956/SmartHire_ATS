@@ -1,14 +1,12 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
-import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProfileRequired from "./components/ProfileRequired";
-import InterviewSetup from "./pages/InterviewSetup";
-import InterviewArena from "./pages/InterviewArena";
-import InterviewHistory from "./pages/InterviewHistory";
-import InterviewReport from "./pages/InterviewReport";
-// Lazy-loaded pages
+import WorkspaceLayout from "./components/WorkspaceLayout";
+import Job from "./pages/Jobs";
+import AISettings from "./pages/AISettings";
+
 const Landing = lazy(() => import("./pages/Landing"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -33,7 +31,9 @@ function NotFound() {
   return (
     <div className="not-found">
       <span>404</span>
+
       <h1>Page not found</h1>
+
       <p>The page you're looking for doesn't exist.</p>
 
       <a href="/dashboard" className="button primary">
@@ -47,10 +47,16 @@ export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* Public */}
+        {/* =====================================================
+            PUBLIC
+            ===================================================== */}
+
         <Route path="/" element={<Landing />} />
 
-        {/* Onboarding */}
+        {/* =====================================================
+            ONBOARDING
+            ===================================================== */}
+
         <Route
           path="/onboarding"
           element={
@@ -60,101 +66,42 @@ export default function App() {
           }
         />
 
-        {/* Dashboard */}
+        {/* =====================================================
+            AUTHENTICATED SMART HIRE WORKSPACE
+           
+            WorkspaceLayout provides:
+            - Navbar
+            - Left Career Sidebar
+            - Main page content
+            - Right AI Career Insights
+            ===================================================== */}
+
         <Route
-          path="/dashboard"
           element={
             <Protected>
               <ProfileRequired>
-                <Navbar />
-                <Dashboard />
+                <WorkspaceLayout />
               </ProfileRequired>
             </Protected>
           }
-        />
+        >
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* Analyze */}
-        <Route
-          path="/analyze"
-          element={
-            <Protected>
-              <ProfileRequired>
-                <Navbar />
-                <Analyze />
-              </ProfileRequired>
-            </Protected>
-          }
-        />
+          {/* Resume Analysis */}
+          <Route path="/analyze" element={<Analyze />} />
 
-        {/* History */}
-        <Route
-          path="/history"
-          element={
-            <Protected>
-              <ProfileRequired>
-                <Navbar />
-                <History />
-              </ProfileRequired>
-            </Protected>
-          }
-        />
+          {/* Analysis History */}
+          <Route path="/history" element={<History />} />
 
-        {/* Analysis Details */}
-        <Route
-          path="/analysis/:id"
-          element={
-            <Protected>
-              <ProfileRequired>
-                <Navbar />
-                <Analysis />
-              </ProfileRequired>
-            </Protected>
-          }
-        />
+          {/* Analysis Details */}
+          <Route path="/analysis/:id" element={<Analysis />} />
 
-        <Route
-          path="/interview/setup"
-          element={
-            <Protected>
-              <ProfileRequired>
-                <Navbar />
-                <InterviewSetup />
-              </ProfileRequired>
-            </Protected>
-          }
-        />
-        <Route
-          path="/interview/:sessionId"
-          element={
-            <Protected>
-              <ProfileRequired>
-                <InterviewArena />
-              </ProfileRequired>
-            </Protected>
-          }
-        />
-        <Route
-          path="/interviews/history"
-          element={
-            <ProtectedRoute>
-              <ProfileRequired>
-                <Navbar />
-                <InterviewHistory />
-              </ProfileRequired>
-            </ProtectedRoute>
-          }
-        />
+          {/* AI Settings */}
+          <Route path="/settings" element={<AISettings />} />
+          <Route path="/jobs" element={<Job />} />
+        </Route>
 
-        <Route
-          path="/interview/:sessionId/report"
-          element={
-            <ProtectedRoute>
-              <InterviewReport />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

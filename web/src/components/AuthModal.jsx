@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  CheckCircle2,
-  LockKeyhole,
-  Mail,
-  Sparkles,
-  UserRound,
-  X,
-} from "lucide-react";
+import { ArrowRight, LockKeyhole, Mail, UserRound, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 function isValidGmail(email) {
@@ -118,20 +110,12 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
     setError("");
     setSuccess("");
 
-    // ----------------------------------------------------------
-    // Configuration
-    // ----------------------------------------------------------
-
     if (!configured) {
       setError(
         "SmartHire authentication is not configured. Please check your environment settings.",
       );
       return;
     }
-
-    // ----------------------------------------------------------
-    // Name validation
-    // ----------------------------------------------------------
 
     if (!isLogin) {
       const fullName = form.fullName.trim();
@@ -147,10 +131,6 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
       }
     }
 
-    // ----------------------------------------------------------
-    // Gmail validation
-    // ----------------------------------------------------------
-
     const email = form.email.trim().toLowerCase();
 
     if (!email) {
@@ -163,10 +143,6 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
       return;
     }
 
-    // ----------------------------------------------------------
-    // Password validation
-    // ----------------------------------------------------------
-
     if (!form.password) {
       setError("Please enter your password.");
       return;
@@ -176,10 +152,6 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
       setError("Password must contain at least 6 characters.");
       return;
     }
-
-    // ----------------------------------------------------------
-    // Confirm password
-    // ----------------------------------------------------------
 
     if (!isLogin) {
       if (!form.confirmPassword) {
@@ -196,18 +168,17 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
     setBusy(true);
 
     try {
-      // ========================================================
-      // LOGIN
-      // ========================================================
-
       if (isLogin) {
         const { data } = await signIn(email, form.password);
 
         if (!data?.session) {
+          setBusy(false);
           setError("Unable to create a login session. Please try again.");
-
           return;
         }
+
+        // Keep the SmartHire logo loading screen visible for 5 seconds.
+        await new Promise((resolve) => setTimeout(resolve, 5000));
 
         onClose();
 
@@ -218,18 +189,11 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
         return;
       }
 
-      // ========================================================
-      // SIGN UP
-      // ========================================================
-
       const { data } = await signUp(email, form.password, form.fullName.trim());
 
-      // --------------------------------------------------------
-      // Supabase should return a session because email
-      // confirmation is disabled.
-      // --------------------------------------------------------
-
       if (!data?.session) {
+        setBusy(false);
+
         setError(
           "Account created, but automatic sign in was not completed. Please disable email confirmation in Supabase and try again.",
         );
@@ -237,123 +201,95 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
         return;
       }
 
-      setSuccess("Account created successfully.");
+      // Keep the SmartHire logo loading screen visible for 5 seconds.
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
-      // Small delay so the success message is visible.
-      setTimeout(() => {
-        onClose();
+      onClose();
 
-        navigate("/onboarding", {
-          replace: true,
-        });
-      }, 500);
+      navigate("/onboarding", {
+        replace: true,
+      });
     } catch (authError) {
       console.error("Authentication error:", authError);
 
-      setError(getAuthErrorMessage(authError, isLogin));
-    } finally {
       setBusy(false);
+
+      setError(getAuthErrorMessage(authError, isLogin));
     }
   }
 
   return (
-    <div className="auth-modal-overlay" onMouseDown={closeOnBackdrop}>
-      <div
-        className="auth-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="auth-modal-title"
-      >
-        {/* CLOSE */}
+    <>
+      {/* =====================================================
+          SMART HIRE LOADING SCREEN
+          ===================================================== */}
 
-        <button
-          type="button"
-          className="auth-modal-close"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close"
+      {busy && (
+        <div
+          className="auth-loading-screen"
+          aria-label="Loading SmartHire"
+          role="status"
         >
-          <X size={19} />
-        </button>
-
-        {/* LEFT BRAND PANEL */}
-
-        <div className="auth-modal-brand-panel">
-          <div className="auth-modal-brand">
-            <span className="auth-modal-brand-mark">
-              <Sparkles size={18} />
-            </span>
-
-            <span>
-              Smart<span>Hire</span>
-            </span>
-          </div>
-
-          <div className="auth-modal-pitch">
-            <span className="auth-modal-kicker">
-              <Sparkles size={13} />
-              AI-POWERED ATS
-            </span>
-
-            <h3>
-              {isLogin
-                ? "Build a resume that gets noticed."
-                : "Turn your resume into an advantage."}
-            </h3>
-
-            <p>
-              {isLogin
-                ? "Continue analyzing your resume, validating your skills, and improving your job match."
-                : "Analyze your ATS score, discover skill gaps, and improve your resume with AI-powered insights."}
-            </p>
-
-            <div className="auth-modal-benefits">
-              <span>
-                <CheckCircle2 size={15} />
-                ATS compatibility scoring
-              </span>
-
-              <span>
-                <CheckCircle2 size={15} />
-                Job description matching
-              </span>
-
-              <span>
-                <CheckCircle2 size={15} />
-                AI recommendations
-              </span>
-
-              <span>
-                <CheckCircle2 size={15} />
-                Skill validation
-              </span>
-            </div>
-          </div>
+          <img
+            src="/hi-logo-nav.svg"
+            alt="SmartHire"
+            className="auth-loading-logo"
+          />
         </div>
+      )}
 
-        {/* RIGHT FORM */}
+      {/* =====================================================
+          AUTH MODAL
+          ===================================================== */}
 
-        <div className="auth-modal-form-panel">
-          <div className="auth-modal-form-wrap">
-            <p className="auth-modal-eyebrow">
-              {isLogin ? "WELCOME BACK" : "GET STARTED"}
-            </p>
+      <div className="auth-modal-overlay" onMouseDown={closeOnBackdrop}>
+        <div
+          className="auth-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-modal-title"
+        >
+          {/* CLOSE */}
 
-            <h2 id="auth-modal-title">
-              {isLogin
-                ? "Sign in to SmartHire"
-                : "Create your SmartHire account"}
-            </h2>
+          <button
+            type="button"
+            className="auth-modal-close"
+            onClick={onClose}
+            disabled={busy}
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
 
-            <p className="auth-modal-subtitle">
-              {isLogin
-                ? "Continue analyzing and improving your resume."
-                : "Create your account and get started in a few seconds."}
-            </p>
+          {/* CENTERED AUTH CONTENT */}
+
+          <div className="auth-modal-content">
+            {/* BRAND */}
+
+            <div className="auth-modal-brand">
+              <img
+                src="/hi-logo-nav.svg"
+                alt="SmartHire"
+                width="160"
+                height="26"
+              />
+            </div>
+
+            <div className="auth-modal-header">
+              <h2 id="auth-modal-title">
+                {isLogin ? "Sign in" : "Create your account"}
+              </h2>
+
+              <p className="auth-modal-subtitle">
+                {isLogin
+                  ? "Welcome back! Enter your details to continue."
+                  : "Start analyzing your resume in seconds."}
+              </p>
+            </div>
+
+            {/* FORM */}
 
             <form onSubmit={submit}>
-              {/* FULL NAME */}
-
               {!isLogin && (
                 <label className="auth-modal-field">
                   <span>Full name</span>
@@ -372,8 +308,6 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
                   </div>
                 </label>
               )}
-
-              {/* EMAIL */}
 
               <label className="auth-modal-field">
                 <span>Email</span>
@@ -398,8 +332,6 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
                 )}
               </label>
 
-              {/* PASSWORD */}
-
               <label className="auth-modal-field">
                 <span>Password</span>
 
@@ -418,8 +350,6 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
                   />
                 </div>
               </label>
-
-              {/* CONFIRM PASSWORD */}
 
               {!isLogin && (
                 <label className="auth-modal-field">
@@ -442,23 +372,17 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
                 </label>
               )}
 
-              {/* ERROR */}
-
               {error && (
                 <div className="auth-modal-error" role="alert">
                   {error}
                 </div>
               )}
 
-              {/* SUCCESS */}
-
               {success && (
                 <div className="auth-modal-success" role="status">
                   {success}
                 </div>
               )}
-
-              {/* SUBMIT */}
 
               <button
                 type="submit"
@@ -496,14 +420,9 @@ export default function AuthModal({ mode = "login", onClose, onModeChange }) {
                 </>
               )}
             </div>
-
-            <p className="auth-modal-privacy">
-              Your SmartHire account uses your email and password to securely
-              access your career profile.
-            </p>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

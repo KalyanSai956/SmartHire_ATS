@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
@@ -16,6 +15,7 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
+
 import {
   Area,
   AreaChart,
@@ -27,23 +27,31 @@ import {
 } from "recharts";
 
 import { getHistory, getProfile } from "../services/api";
-
 import { useAuth } from "../context/AuthContext";
-
 import { getAtsScore, getJdMatch, normalizeHistory } from "../utils/analysis";
 
-import AnalysisTable from "../components/AnalysisTable";
+import "../styles.css";
 
-function StatCard({ label, value, suffix = "", helper, tone, icon: Icon }) {
+/* =========================================================
+   SMALL COMPONENTS
+   ========================================================= */
+
+function StatCard({ label, value, suffix = "", helper, icon: Icon }) {
   return (
     <div className="stat-card">
       <div className="stat-top">
         <span className="stat-label">{label}</span>
+
+        {Icon && (
+          <span className="stat-icon">
+            <Icon size={17} />
+          </span>
+        )}
       </div>
 
       <div className="stat-value">
         {value}
-        <span>{suffix}</span>
+        {suffix && <span>{suffix}</span>}
       </div>
 
       <div className="stat-bottom">
@@ -91,11 +99,27 @@ function QuickAction({ icon: Icon, title, text, to, disabled = false }) {
   );
 }
 
+/* =========================================================
+   PROFILE COMPLETENESS
+   ========================================================= */
+
 function ProfileProgress({ profile }) {
   const checks = [
     {
       label: "Username",
       complete: Boolean(profile?.username?.trim()),
+    },
+    {
+      label: "Career interests",
+      complete:
+        Array.isArray(profile?.career_interests) &&
+        profile.career_interests.length > 0,
+    },
+    {
+      label: "Specializations",
+      complete:
+        Array.isArray(profile?.specializations) &&
+        profile.specializations.length > 0,
     },
     {
       label: "Skills",
@@ -109,6 +133,10 @@ function ProfileProgress({ profile }) {
     {
       label: "Experience",
       complete: Boolean(profile?.experience?.trim()),
+    },
+    {
+      label: "Graduation year",
+      complete: Boolean(profile?.graduation_year),
     },
     {
       label: "Resume",
@@ -127,22 +155,64 @@ function ProfileProgress({ profile }) {
   };
 }
 
+/* =========================================================
+   PROFILE LIST
+   ========================================================= */
+
+function ProfileSection({ icon: Icon, title, children }) {
+  return (
+    <div className="profile-detail-block">
+      <div className="profile-detail-heading">
+        {Icon && <Icon size={15} />}
+        <span>{title}</span>
+      </div>
+
+      {children}
+    </div>
+  );
+}
+
+function ProfileTags({ items, emptyText }) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return <span className="muted">{emptyText}</span>;
+  }
+
+  return (
+    <div className="career-tags">
+      {items.map((item) => (
+        <ProfileTag key={item}>{item}</ProfileTag>
+      ))}
+    </div>
+  );
+}
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
 export default function Dashboard() {
   const { accessToken, user } = useAuth();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
-
   const [history, setHistory] = useState([]);
 
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
   const [error, setError] = useState("");
+
+  /* =====================================================
+     LOAD DASHBOARD DATA
+     ===================================================== */
 
   useEffect(() => {
     let active = true;
 
     async function loadDashboard() {
+      if (!accessToken) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError("");
 
@@ -152,13 +222,15 @@ export default function Dashboard() {
           getHistory(accessToken),
         ]);
 
-        if (!active) return;
+        if (!active) {
+          return;
+        }
 
         setProfile(profileData);
         setHistory(normalizeHistory(historyData));
       } catch (err) {
         if (active) {
-          setError(err.message || "Could not load your dashboard.");
+          setError(err?.message || "Could not load your career workspace.");
         }
       } finally {
         if (active) {
@@ -167,14 +239,16 @@ export default function Dashboard() {
       }
     }
 
-    if (accessToken) {
-      loadDashboard();
-    }
+    loadDashboard();
 
     return () => {
       active = false;
     };
   }, [accessToken]);
+
+  /* =====================================================
+     DISPLAY DATA
+     ===================================================== */
 
   const displayName =
     profile?.username ||
@@ -200,6 +274,10 @@ export default function Dashboard() {
       )
     : 0;
 
+  /* =====================================================
+     CHART
+     ===================================================== */
+
   const chartData = useMemo(
     () =>
       history
@@ -218,9 +296,17 @@ export default function Dashboard() {
     [history],
   );
 
+  /* =====================================================
+     PROFILE PROGRESS
+     ===================================================== */
+
   const profileProgress = ProfileProgress({
     profile,
   });
+
+  /* =====================================================
+     LOADING
+     ===================================================== */
 
   if (loading) {
     return (
@@ -233,36 +319,56 @@ export default function Dashboard() {
     );
   }
 
+  /* =====================================================
+     RENDER
+     ===================================================== */
   return (
-    <div className="mx-auto max-w-5xl px-6 py-5 page-shell">
+    <div className="mx-auto max-w-4xl px-1 py-2 page-shell">
+      {/* =================================================
+          HERO / CAREER PROFILE
+          ================================================= */}
+
       <section className="career-profile-banner">
         <div className="career-profile-main">
           <div className="career-avatar">
             <UserRound size={23} />
           </div>
 
-          <div>
+          <div className="career-profile-copy">
+            <span className="career-greeting">Welcome back, {displayName}</span>
+
             <h2>
               {profile?.target_roles?.length
                 ? profile.target_roles.join(" · ")
-                : "Set your target role"}
+                : "Build your career profile"}
             </h2>
 
             <div className="career-meta">
-              <span>
-                <GraduationCap size={14} />
-                {profile?.experience || "Experience not set"}
-              </span>
+              {profile?.experience && (
+                <span>
+                  <BriefcaseBusiness size={14} />
+                  {profile.experience}
+                </span>
+              )}
+
+              {profile?.graduation_year && (
+                <span>
+                  <GraduationCap size={14} />
+                  Class of {profile.graduation_year}
+                </span>
+              )}
 
               {profile?.resume_filename && (
                 <span>
                   <FileText size={14} />
-                  {profile.resume_filename}
+                  Resume connected
                 </span>
               )}
             </div>
           </div>
         </div>
+
+        {/* PROFILE COMPLETENESS */}
 
         <div className="career-profile-progress">
           <div className="progress-copy">
@@ -280,7 +386,7 @@ export default function Dashboard() {
           </div>
 
           <span className="progress-helper">
-            {profileProgress.completed}/5 profile sections complete
+            {profileProgress.completed}/8 profile sections complete
           </span>
         </div>
       </section>
@@ -308,8 +414,7 @@ export default function Dashboard() {
           helper={
             latestScore ? "Most recent analysis" : "Run your first analysis"
           }
-          tone="green"
-          icon={Zap}
+          // icon={Zap}
         />
 
         <StatCard
@@ -317,16 +422,14 @@ export default function Dashboard() {
           value={bestScore || "—"}
           suffix={bestScore ? "/100" : ""}
           helper="Your personal best"
-          tone="gold"
-          icon={Trophy}
+          // icon={Trophy}
         />
 
         <StatCard
           label="TOTAL ANALYSES"
           value={history.length}
           helper="Saved resume analyses"
-          tone="purple"
-          icon={FileText}
+          // icon={FileText}
         />
 
         <StatCard
@@ -334,8 +437,7 @@ export default function Dashboard() {
           value={averageScore || "—"}
           suffix={averageScore ? "/100" : ""}
           helper="Across your analyses"
-          tone="orange"
-          icon={TrendingUp}
+          // icon={TrendingUp}
         />
       </section>
 
@@ -344,14 +446,14 @@ export default function Dashboard() {
           ================================================= */}
 
       <section className="dashboard-main-grid">
-        {/* SCORE TREND */}
+        {/* =================================================
+            RESUME PERFORMANCE
+            ================================================= */}
 
         <div className="panel">
           <div className="panel-header">
             <div>
-              <h2>Resume Performance</h2>
-
-              <p>See how your ATS score changes across your analyses.</p>
+              <span className="section-kicker">RESUME INTELLIGENCE</span>
             </div>
 
             {history.length > 0 && (
@@ -375,29 +477,26 @@ export default function Dashboard() {
                     <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
                       <stop
                         offset="0%"
-                        stopColor="#22c55e"
-                        stopOpacity={0.32}
+                        stopColor="#0743eb"
+                        stopOpacity={0.28}
                       />
 
                       <stop
                         offset="100%"
-                        stopColor="#22c55e"
+                        stopColor="#0744ed"
                         stopOpacity={0.02}
                       />
                     </linearGradient>
                   </defs>
 
-                  <CartesianGrid
-                    stroke="rgba(255,255,255,0.08)"
-                    vertical={false}
-                  />
+                  <CartesianGrid stroke="#eef2f7" vertical={false} />
 
                   <XAxis
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
                     tick={{
-                      fill: "#7A7A85",
+                      fill: "#94a3b8",
                       fontSize: 12,
                     }}
                   />
@@ -407,27 +506,32 @@ export default function Dashboard() {
                     axisLine={false}
                     tickLine={false}
                     tick={{
-                      fill: "#7A7A85",
+                      fill: "#94a3b8",
                       fontSize: 12,
                     }}
                   />
 
                   <Tooltip
                     contentStyle={{
-                      background: "#111113",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "#ffffff",
+                      border: "1px solid #e5e7eb",
                       borderRadius: 10,
-                      color: "#F5F5F7",
+                      color: "#111827",
                       fontSize: 13,
+                      boxShadow: "0 10px 30px rgba(15,23,42,0.08)",
                     }}
-                    labelStyle={{ color: "#9A9AA4" }}
-                    itemStyle={{ color: "#4ADE80" }}
+                    labelStyle={{
+                      color: "#64748b",
+                    }}
+                    itemStyle={{
+                      color: "#002a9d",
+                    }}
                   />
 
                   <Area
                     type="monotone"
                     dataKey="score"
-                    stroke="#22c55e"
+                    stroke="#002a9d"
                     strokeWidth={3}
                     fill="url(#scoreFill)"
                   />
@@ -452,58 +556,87 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* PROFILE */}
+        {/* =================================================
+            CAREER PROFILE
+            ================================================= */}
 
         <div className="panel career-profile-panel">
-          <div className="profile-detail-block">
-            <div className="profile-detail-heading">
-              {/* <Target size={16} /> */}
-              <span> Target Roles</span>
-            </div>
+          {/* CAREER INTERESTS */}
 
-            <div className="career-tags">
-              {profile?.target_roles?.length ? (
-                profile.target_roles.map((role) => (
-                  <ProfileTag key={role}> {role}</ProfileTag>
-                ))
-              ) : (
-                <span className="muted">No target roles yet</span>
-              )}
-            </div>
-          </div>
+          <ProfileSection icon={Target} title="Career Interests">
+            <ProfileTags
+              items={profile?.career_interests}
+              emptyText="No career interests added"
+            />
+          </ProfileSection>
 
-          <div className="profile-detail-block">
-            <div className="profile-detail-heading">
-              <Zap size={16} />
-              <span> Skills</span>
-            </div>
+          {/* SPECIALIZATIONS */}
 
-            <div className="career-tags">
-              {profile?.skills?.length ? (
-                profile.skills
-                  .slice(0, 10)
-                  .map((skill) => <ProfileTag key={skill}>{skill}</ProfileTag>)
-              ) : (
-                <span className="muted">No skills added</span>
-              )}
-            </div>
+          <ProfileSection icon={Sparkles} title="Specializations">
+            <ProfileTags
+              items={profile?.specializations}
+              emptyText="No specializations added"
+            />
+          </ProfileSection>
 
-            {profile?.skills?.length > 10 && (
-              <span className="profile-more">
-                +{profile.skills.length - 10} more
-              </span>
+          {/* TARGET ROLES */}
+
+          <ProfileSection icon={BriefcaseBusiness} title="Target Roles">
+            <ProfileTags
+              items={profile?.target_roles}
+              emptyText="No target roles added"
+            />
+          </ProfileSection>
+
+          {/* SKILLS */}
+
+          <ProfileSection icon={Zap} title="Skills">
+            {profile?.skills?.length ? (
+              <>
+                <div className="career-tags">
+                  {profile.skills.slice(0, 12).map((skill) => (
+                    <ProfileTag key={skill}>{skill}</ProfileTag>
+                  ))}
+                </div>
+
+                {profile.skills.length > 12 && (
+                  <span className="profile-more">
+                    +{profile.skills.length - 12} more
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className="muted">No skills added</span>
             )}
-          </div>
+          </ProfileSection>
 
-          <div className="profile-detail-block">
-            <div className="profile-detail-heading">
-              <span>Experience</span>
+          {/* EXPERIENCE + GRADUATION */}
+
+          <div className="profile-two-column">
+            <div className="profile-detail-block">
+              <div className="profile-detail-heading">
+                <BriefcaseBusiness size={15} />
+                <span>Experience</span>
+              </div>
+
+              <strong className="experience-value">
+                {profile?.experience || "Not specified"}
+              </strong>
             </div>
 
-            <strong className="experience-value">
-              {profile?.experience || "Not specified"}
-            </strong>
+            <div className="profile-detail-block">
+              <div className="profile-detail-heading">
+                <GraduationCap size={15} />
+                <span>Graduation</span>
+              </div>
+
+              <strong className="experience-value">
+                {profile?.graduation_year || "Not specified"}
+              </strong>
+            </div>
           </div>
+
+          {/* RESUME */}
 
           <div className="profile-resume-status">
             <div className="resume-status-icon">
@@ -511,26 +644,20 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <strong>Resume connected</strong>
+              <strong>
+                {profile?.resume_filename
+                  ? "Resume connected"
+                  : "Resume not connected"}
+              </strong>
 
-              <span>{profile?.resume_filename || "No resume uploaded"}</span>
+              <span>
+                {profile?.resume_filename ||
+                  "Upload your resume to unlock analysis."}
+              </span>
             </div>
           </div>
         </div>
       </section>
-      <div className="heading-actions">
-        <Link to="/analyze" className="button primary">
-          <Upload size={17} />
-          Analyze Resume
-        </Link>
-        <button
-          type="button"
-          className="button primary"
-          onClick={() => navigate("/interview/setup")}
-        >
-          Start Interview
-        </button>
-      </div>
     </div>
   );
 }

@@ -57,3 +57,9 @@ SUPABASE_KEY       = os.getenv('SUPABASE_KEY', '')          # service_role — D
 SUPABASE_ANON_KEY  = os.getenv('SUPABASE_ANON_KEY', '')     # public anon — frontend auth calls
 SUPABASE_JWT_SECRET= os.getenv('SUPABASE_JWT_SECRET', '')   # used by backend to verify access tokens
 GROQ_API_KEY       = os.getenv('GROQ_API_KEY', '')
+LLM_CREDENTIAL_ENCRYPTION_KEY = (
+    os.getenv(
+        "LLM_CREDENTIAL_ENCRYPTION_KEY",
+        "",
+    ).strip()
+)

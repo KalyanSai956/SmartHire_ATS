@@ -120,7 +120,7 @@ export default function History() {
      ===================================================== */
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-5 page-shell">
+    <div className="mx-auto max-w-4xl px-6 py-5 page-shell">
       {/* =================================================
           HEADER
       ================================================= */}
@@ -132,8 +132,7 @@ export default function History() {
           <p>Review your previous resume analyses.</p>
         </div>
 
-        <Link to="/analyze" className="button primary">
-          <Sparkles size={17} />
+        <Link to="/analyze" className="button secondary">
           New Analysis
         </Link>
       </section>
@@ -164,7 +163,7 @@ export default function History() {
           TABLE
       ================================================= */}
 
-      <div className="panel table-panel history-panel">
+      <div className="mx-auto max-w-4xl px-6 py-5 panel table-panel history-panel">
         {loading ? (
           <div className="loading-state">
             <span className="loading-spinner" />

@@ -175,215 +175,7 @@ export function analyzeResume({
     }
   );
 }
-export function createInterviewSession({
-  role,
-  jobDescription,
-  interviewType,
-  difficulty,
-  configuration,
-  token,
-}) {
-  return request("/api/v1/interviews", {
-    method: "POST",
-    token,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      role,
-      job_description: jobDescription,
-      interview_type: interviewType,
-      difficulty,
-      configuration: {
-        question_count: configuration.questionCount,
-        duration_minutes: configuration.durationMinutes,
-        focus_areas: configuration.focusAreas,
-        include_coding: configuration.includeCoding,
-        include_system_design: configuration.includeSystemDesign,
-      },
-    }),
-  });
-}
-export function getInterviewSession({
-  sessionId,
-  token,
-}) {
-  return request(`/api/v1/interviews/${sessionId}`, {
-    method: "GET",
-    token,
-  });
-}
 
-export function startInterviewSession({
-  sessionId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/start`,
-    {
-      method: "POST",
-      token,
-    }
-  );
-}
-
-/* =====================================================
-   INTERVIEW — QUESTIONS
-   ===================================================== */
-
-export function generateInterviewQuestions({
-  sessionId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/questions/generate`,
-    {
-      method: "POST",
-      token,
-    }
-  );
-}
-
-
-/* =====================================================
-   INTERVIEW — GET QUESTIONS
-   ===================================================== */
-
-export function getInterviewQuestions({
-  sessionId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/questions`,
-    {
-      method: "GET",
-      token,
-    }
-  );
-}
-
-
-/* =====================================================
-   INTERVIEW — SUBMIT ANSWER
-   ===================================================== */
-
-export function submitInterviewAnswer({
-  sessionId,
-  questionId,
-  answerText,
-  answerSource = "text",
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/questions/${questionId}/answer`,
-    {
-      method: "POST",
-      token,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        answer_text: answerText,
-        answer_source: answerSource,
-      }),
-    }
-  );
-}
-
-
-/* =====================================================
-   INTERVIEW — EVALUATE ANSWER
-   ===================================================== */
-
-export function evaluateInterviewAnswer({
-  sessionId,
-  answerId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/answers/${answerId}/evaluate`,
-    {
-      method: "POST",
-      token,
-    }
-  );
-}
-
-
-/* =====================================================
-   INTERVIEW — ADAPTIVE NEXT QUESTION
-   ===================================================== */
-
-export function getAdaptiveNextQuestion({
-  sessionId,
-  questionId,
-  answerId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/questions/${questionId}/adaptive-next?answer_id=${encodeURIComponent(
-      answerId
-    )}`,
-    {
-      method: "POST",
-      token,
-    }
-  );
-}
-
-
-/* =====================================================
-   INTERVIEW — PAUSE
-   ===================================================== */
-
-export function pauseInterviewSession({
-  sessionId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/pause`,
-    {
-      method: "POST",
-      token,
-    }
-  );
-}
-
-
-/* =====================================================
-   INTERVIEW — RESUME
-   ===================================================== */
-
-export function resumeInterviewSession({
-  sessionId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/resume`,
-    {
-      method: "POST",
-      token,
-    }
-  );
-}
-
-
-/* =====================================================
-   INTERVIEW — COMPLETE
-   ===================================================== */
-
-export function completeInterviewSession({
-  sessionId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/complete`,
-    {
-      method: "POST",
-      token,
-    }
-  );
-}
 /* =====================================================
    HISTORY PDF
    ===================================================== */
@@ -479,13 +271,47 @@ export function getProfile(token) {
     token,
   });
 }
-
-
-export function updateProfile({
+export function saveOnboardingProgress({
+  step,
   username,
+  careerInterests,
+  specializations,
   skills,
   targetRoles,
   experience,
+  graduationYear,
+  token,
+}) {
+  return request("/api/v1/profile/onboarding-progress", {
+    method: "PATCH",
+    token,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      step,
+      username,
+      career_interests: careerInterests,
+      specializations,
+      skills,
+      target_roles: targetRoles,
+      experience,
+      graduation_year:
+        graduationYear === "" || graduationYear == null
+          ? null
+          : Number(graduationYear),
+    }),
+  });
+}
+
+export function updateProfile({
+  username,
+  careerInterests,
+  specializations,
+  skills,
+  targetRoles,
+  experience,
+  graduationYear,
   token,
 }) {
   return request("/api/v1/profile", {
@@ -496,13 +322,15 @@ export function updateProfile({
     },
     body: JSON.stringify({
       username,
+      career_interests: careerInterests,
+      specializations,
       skills,
       target_roles: targetRoles,
       experience,
+      graduation_year: graduationYear,
     }),
   });
 }
-
 
 export function uploadProfileResume({
   file,
@@ -526,117 +354,110 @@ export function completeOnboarding(token) {
     token,
   });
 }
-export async function transcribeInterviewAudio({
-  audioBlob,
-  token,
-}) {
-  const formData = new FormData();
 
-  const extension =
-    audioBlob.type?.includes("webm")
-      ? "webm"
-      : "wav";
 
-  formData.append(
-    "audio",
-    audioBlob,
-    `interview-answer.${extension}`
-  );
 
+export async function getLLMSettings(accessToken) {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/speech/transcribe`,
+    `${API_BASE_URL}/api/v1/llm-settings`,
     {
-      method: "POST",
+      method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
-      body: formData,
     }
   );
 
-  const data = await response.json();
-
   if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+
     throw new Error(
-      data?.detail ||
-        "Speech transcription failed."
+      error.detail || "Failed to load AI settings."
     );
   }
 
-  return data;
+  return response.json();
 }
 
 
-export async function synthesizeInterviewSpeech({
-  text,
-  token,
-  voice,
-}) {
+export async function connectLLMProvider(
+  accessToken,
+  provider,
+  apiKey,
+  model
+) {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/speech/synthesize`,
+    `${API_BASE_URL}/api/v1/llm-settings/connect`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
-        text,
-        language: "en",
-        voice: voice || null,
-        format: "wav",
+        provider,
+        api_key: apiKey,
+        model: model || null,
       }),
     }
   );
 
   if (!response.ok) {
-    let message =
-      "Speech synthesis failed.";
+    const error = await response.json().catch(() => ({}));
 
-    try {
-      const data = await response.json();
-
-      message =
-        data?.detail || message;
-    } catch {
-      // Keep default message.
-    }
-
-    throw new Error(message);
+    throw new Error(
+      error.detail || "Failed to connect AI provider."
+    );
   }
 
-  return response.blob();
-}
-/* =====================================================
-   INTERVIEW — REPORT
-   ===================================================== */
-
-export function getInterviewReport({
-  sessionId,
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/${sessionId}/report`,
-    {
-      method: "GET",
-      token,
-    },
-  );
+  return response.json();
 }
 
 
-/* =====================================================
-   INTERVIEW — HISTORY
-   ===================================================== */
+export async function disconnectLLMProvider(
+  accessToken,
+  provider
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/llm-settings/${provider}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
 
-export function getInterviewHistory({
-  token,
-}) {
-  return request(
-    `/api/v1/interviews/history`,
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+
+    throw new Error(
+      error.detail || "Failed to disconnect AI provider."
+    );
+  }
+
+  return response.json();
+}
+
+
+export async function getUsageQuota(accessToken) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/usage/quota`,
     {
       method: "GET",
-      token,
-    },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
   );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+
+    throw new Error(
+      error.detail || "Failed to load usage information."
+    );
+  }
+
+  return response.json();
 }

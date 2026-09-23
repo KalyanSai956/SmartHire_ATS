@@ -1,0 +1,326 @@
+.job-coming-page {
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+}
+
+
+/* =========================================================
+   MAIN CARD
+   ========================================================= */
+
+.job-coming-card {
+  width: min(720px, 100%);
+
+  padding: 52px 46px;
+
+  text-align: center;
+  border-radius: 24px;
+}
+
+
+/* =========================================================
+   ICON
+   ========================================================= */
+
+.job-coming-icon-wrap {
+  position: relative;
+
+  width: 76px;
+  height: 76px;
+
+  margin: 0 auto 20px;
+}
+
+.job-coming-icon {
+  width: 76px;
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #eff6ff,
+      #ecfeff
+    );
+
+  border: 1px solid #dbeafe;
+
+  color: #087b9b;
+
+  box-shadow:
+    0 10px 30px rgba(8, 123, 155, 0.1);
+}
+
+.job-coming-sparkle {
+  position: absolute;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: white;
+
+  color: #6366f1;
+
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.1);
+}
+
+.sparkle-one {
+  width: 25px;
+  height: 25px;
+
+  right: -7px;
+  top: -5px;
+}
+
+.sparkle-two {
+  width: 21px;
+  height: 21px;
+
+  left: -5px;
+  bottom: -3px;
+
+  color: #0891b2;
+}
+
+
+/* =========================================================
+   BADGE
+   ========================================================= */
+
+.job-coming-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 6px 11px;
+
+  margin-bottom: 15px;
+
+  border-radius: 999px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e5e7eb;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color: #64748b;
+}
+
+.job-coming-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #0891b2;
+
+  box-shadow:
+    0 0 0 3px rgba(8, 145, 178, 0.1);
+}
+
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.job-coming-card h1 {
+  margin: 0;
+
+  font-size: clamp(30px, 4vw, 44px);
+
+  line-height: 1.08;
+
+  letter-spacing: -0.035em;
+
+  color: #172033;
+}
+
+.job-coming-card h1 span {
+  color: #087b9b;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.job-coming-description {
+  max-width: 570px;
+
+  margin: 17px auto 30px;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  color: #64748b;
+}
+
+
+/* =========================================================
+   FEATURE PREVIEW
+   ========================================================= */
+
+.job-preview-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 10px;
+
+  text-align: left;
+}
+
+.job-preview-item {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding: 14px;
+
+  border-radius: 13px;
+
+  background: #f8fafc;
+
+  border: 1px solid #eef2f7;
+
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.job-preview-item:hover {
+  border-color: #dbeafe;
+
+  transform: translateY(-1px);
+}
+
+.job-preview-icon {
+  width: 31px;
+  height: 31px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #ecfeff;
+
+  color: #087b9b;
+}
+
+.job-preview-item strong {
+  display: block;
+
+  margin-top: 1px;
+
+  font-size: 11px;
+
+  color: #334155;
+}
+
+.job-preview-item span {
+  display: block;
+
+  margin-top: 4px;
+
+  font-size: 9px;
+
+  line-height: 1.5;
+
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.job-coming-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 18px;
+
+  margin-top: 28px;
+}
+
+.job-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 9px 13px;
+
+  border-radius: 9px;
+
+  background: #172033;
+
+  color: white;
+
+  text-decoration: none;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.job-back-button:hover {
+  background: #0f172a;
+
+  transform: translateY(-1px);
+}
+
+.job-coming-note {
+  font-size: 10px;
+
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .job-coming-card {
+    padding: 38px 22px;
+
+    border-radius: 20px;
+  }
+
+  .job-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .job-coming-footer {
+    flex-direction: column;
+
+    gap: 10px;
+  }
+}

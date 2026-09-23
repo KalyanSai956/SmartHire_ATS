@@ -1,0 +1,947 @@
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.workspace-layout {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.workspace-body {
+  position: relative;
+
+  min-height: calc(100vh - 64px);
+
+  padding-top: 16px;
+}
+
+
+/* =========================================================
+   LEFT — CAREER INSIGHTS
+   ========================================================= */
+
+
+.career-sidebar {
+  position: fixed;
+
+  top: 80px;
+  right: max(18px, calc((100vw - 1500px) / 2));
+
+  width: 250px;
+
+  padding: 20px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  box-shadow:
+    0 8px 30px rgba(15, 23, 42, 0.045);
+
+  z-index: 10;
+}
+
+
+/* =========================================================
+   CENTER — MAIN CONTENT
+   ========================================================= */
+
+.workspace-main {
+  width: min(calc(100% - 560px), 980px);
+
+  margin: 0 auto;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   CAREER INSIGHTS HEADER
+   ========================================================= */
+.career-insights {
+  position: fixed;
+
+  top: 80px;
+  left: max(18px, calc((100vw - 1500px) / 2));
+
+  width: 250px;
+  padding: 20px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  box-shadow:
+    0 8px 30px rgba(15, 23, 42, 0.045);
+
+  z-index: 10;
+}
+
+
+/* =========================================================
+   RIGHT — CAREER SIDEBAR
+   ========================================================= */
+
+.career-insights-header {
+  margin-bottom: 18px;
+}
+
+.career-insights-label {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  letter-spacing: 0.13em;
+
+  color: #64748b;
+}
+
+.career-insights-header h3 {
+  margin: 0;
+
+  font-size: 25px;
+  font-weight: 700;
+
+  letter-spacing: -0.01em;
+
+  color: #172033;
+}
+
+
+/* =========================================================
+   CAREER INSIGHTS NAVIGATION
+   ========================================================= */
+
+.career-insights-nav {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.career-insight-link {
+  display: block;
+
+  width: 100%;
+
+  padding: 11px 12px;
+
+  border: 1px solid transparent;
+  border-radius: 9px;
+
+  text-decoration: none;
+
+  background: transparent;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.career-insight-link:hover {
+  background: #f8fafc;
+
+  border-color: #edf0f4;
+
+  transform: translateX(1px);
+}
+
+.career-insight-link.active {
+  background: rgba(0, 42, 157, 0.055);
+
+  border-color: rgba(0, 42, 157, 0.12);
+}
+
+.career-insight-link strong {
+  display: block;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  line-height: 1.35;
+
+  color: #334155;
+}
+
+.career-insight-link.active strong {
+  color: #002a9d;
+}
+
+.career-insight-link span {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 15px;
+
+  line-height: 1.4;
+
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   CAREER SIGNAL
+   ========================================================= */
+
+.career-insights-divider {
+  height: 1px;
+
+  margin: 19px 0;
+
+  background: #edf0f4;
+}
+
+.career-signal-header {
+  margin-bottom: 10px;
+}
+
+.career-signal-header span {
+  display: block;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color: #64748b;
+}
+
+.career-signal-header strong {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #334155;
+}
+
+
+/* =========================================================
+   INSIGHT CARDS
+   ========================================================= */
+
+.insight-card {
+  padding: 12px 13px;
+
+  margin-bottom: 8px;
+
+  border: 1px solid #edf0f4;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+}
+
+.insight-card:last-child {
+  margin-bottom: 0;
+}
+
+.insight-card span {
+  display: block;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  color: #64748b;
+}
+
+.insight-card strong {
+  display: block;
+
+  margin-top: 4px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: #334155;
+}
+
+.insight-card p {
+  margin: 5px 0 0;
+
+  font-size: 8px;
+
+  line-height: 1.55;
+
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   RIGHT SIDEBAR HEADER
+   ========================================================= */
+
+.career-sidebar-header {
+  margin-bottom: 18px;
+}
+
+.career-sidebar-label {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.13em;
+
+  color: #64748b;
+}
+
+.career-sidebar-header h3 {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  letter-spacing: -0.01em;
+
+  color: #172033;
+}
+
+
+/* =========================================================
+   TARGET ROLE
+   ========================================================= */
+
+.career-target-card {
+  padding: 14px;
+
+  border-radius: 10px;
+
+  background: rgba(0, 42, 157, 0.035);
+
+  border: 1px solid rgba(0, 42, 157, 0.1);
+}
+
+.career-target-card span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  color: #64748b;
+}
+
+.career-target-card strong {
+  display: block;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  line-height: 1.45;
+
+  color: #002a9d;
+}
+
+
+/* =========================================================
+   SIDEBAR SECTIONS
+   ========================================================= */
+
+.career-sidebar-section {
+  margin-top: 19px;
+}
+
+.career-sidebar-title {
+  margin-bottom: 10px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  color: #475569;
+}
+
+.career-sidebar-skills {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+.career-sidebar-skills span {
+  padding: 6px 8px;
+
+  border-radius: 6px;
+
+  background: rgba(0, 42, 157, 0.045);
+
+  border: 1px solid rgba(0, 42, 157, 0.1);
+
+  color: #002a9d;
+
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.career-sidebar-muted {
+  margin: 0;
+
+  font-size: 9px;
+
+  line-height: 1.55;
+
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.career-sidebar-divider {
+  height: 1px;
+
+  margin: 18px 0;
+
+  background: #edf0f4;
+}
+
+
+/* =========================================================
+   PROFILE INFORMATION
+   ========================================================= */
+
+.career-sidebar-info {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 13px;
+}
+
+.career-sidebar-info-item {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.career-sidebar-info-item span {
+  display: block;
+
+  font-size: 8px;
+  font-weight: 600;
+
+  color: #94a3b8;
+}
+
+.career-sidebar-info-item strong {
+  display: block;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  line-height: 1.4;
+
+  color: #475569;
+}
+
+
+/* =========================================================
+   PROFILE FOOTER
+   ========================================================= */
+
+.career-sidebar-footer {
+  display: block;
+}
+
+.career-sidebar-footer span {
+  display: block;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  color: #002a9d;
+}
+
+.career-sidebar-footer p {
+  margin: 5px 0 0;
+
+  font-size: 8px;
+
+  line-height: 1.6;
+
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   MAIN CONTENT HEADING
+   ========================================================= */
+
+.workspace-panel-heading {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 18px;
+}
+
+.workspace-panel-heading span {
+  display: block;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  color: #94a3b8;
+}
+
+.workspace-panel-heading h3 {
+  margin: 2px 0 0;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  color: #172033;
+}
+
+
+/* =========================================================
+   NEXT AI ACTION
+   ========================================================= */
+
+.next-ai-action {
+  display: flex;
+
+  gap: 9px;
+
+  margin-top: 15px;
+
+  padding: 13px;
+
+  border-radius: 10px;
+
+  background: rgba(0, 42, 157, 0.035);
+
+  border: 1px solid rgba(0, 42, 157, 0.1);
+}
+
+.next-ai-action > div > span {
+  display: block;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.09em;
+
+  color: #002a9d;
+}
+
+.next-ai-action p {
+  margin: 5px 0 0;
+
+  font-size: 9px;
+
+  line-height: 1.55;
+
+  color: #64748b;
+}
+
+
+/* =========================================================
+   RESPONSIVE — MEDIUM DESKTOP
+   ========================================================= */
+
+@media (max-width: 1350px) {
+  .career-insights,
+  .career-sidebar {
+    width: 220px;
+  }
+
+  .workspace-main {
+    width: min(calc(100% - 500px), 950px);
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE — SMALL DESKTOP
+   ========================================================= */
+
+@media (max-width: 1150px) {
+  .career-insights,
+  .career-sidebar {
+    width: 200px;
+  }
+
+  .workspace-main {
+    width: min(calc(100% - 440px), 900px);
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE — TABLET / MOBILE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .career-insights,
+  .career-sidebar {
+    display: none;
+  }
+
+  .workspace-main {
+    width: 100%;
+  }
+}
+
+/* ================================
+   CAREER SIDEBAR — LARGER FONT
+================================ */
+
+.career-sidebar-header {
+  margin-bottom: 20px;
+}
+
+.career-sidebar-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #64748b;
+}
+
+.career-sidebar-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #172033;
+}
+
+
+/* Target Role */
+
+.career-target-card {
+  padding: 18px;
+}
+
+.career-target-card span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #64748b;
+}
+
+.career-target-card strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #002a9d;
+}
+
+
+/* Skills */
+
+.career-sidebar-section {
+  margin-top: 24px;
+}
+
+.career-sidebar-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.career-sidebar-skills span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* Experience / Graduation / Resume */
+
+.career-sidebar-info-item span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.career-sidebar-info-item strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+
+/* Empty state */
+
+.career-sidebar-muted {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+
+/* Footer */
+
+.career-sidebar-footer > span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #002a9d;
+}
+
+.career-sidebar-footer p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+/* =========================================
+   WORKSPACE MAIN
+========================================= */
+
+.workspace-main {
+  width: min(calc(100% - 560px), 980px);
+  margin: 0 auto;
+  min-width: 0;
+}
+
+
+/* =========================================
+   AI SETUP BANNER
+========================================= */
+.ai-setup-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  width: 100%;
+  min-height: 68px;
+
+  padding: 12px 14px;
+
+  border: 1px solid rgba(0, 42, 157, 0.10);
+  border-radius: 14px;
+
+  background:
+    radial-gradient(
+      circle at 8% 50%,
+      rgba(91, 126, 255, 0.16),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(167, 139, 250, 0.10),
+      transparent 38%
+    ),
+    linear-gradient(
+      105deg,
+      #f4f7ff 0%,
+      #f8faff 45%,
+      #ffffff 100%
+    );
+
+  box-shadow:
+    0 8px 24px rgba(30, 64, 175, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  color: #172033;
+}
+
+/* Icon */
+
+.ai-setup-banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+
+  border-radius: 10px;
+
+  background: rgba(0, 42, 157, 0.07);
+  color: #002a9d;
+}
+
+.ai-setup-banner-icon svg {
+  stroke-width: 2;
+}
+
+
+/* Text */
+
+.ai-setup-banner-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.ai-setup-banner-content span {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #334155;
+}
+
+
+/* Set Up AI button */
+
+.ai-setup-banner-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  flex-shrink: 0;
+
+  min-height: 38px;
+  padding: 0 14px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: linear-gradient(
+    135deg,
+    #5668ed,
+    #6677ff
+  );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 14px rgba(86, 104, 237, 0.28);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.ai-setup-banner-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 18px rgba(86, 104, 237, 0.38);
+
+  filter: brightness(1.05);
+}
+
+.ai-setup-banner-button:active {
+  transform: translateY(0);
+}
+
+
+/* Close button */
+
+.ai-setup-banner-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #73757d;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.ai-setup-banner-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #d1d5db;
+}
+
+
+/* =========================================
+   CONTENT BELOW BANNER
+========================================= */
+
+.workspace-content {
+  margin-top: 18px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 700px) {
+  .ai-setup-banner {
+    align-items: flex-start;
+    gap: 11px;
+
+    padding: 12px;
+  }
+
+  .ai-setup-banner-icon {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .ai-setup-banner-content span {
+    font-size: 13px;
+  }
+
+  .ai-setup-banner-button {
+    min-height: 34px;
+    padding: 0 11px;
+
+    font-size: 12px;
+  }
+
+  .ai-setup-banner-button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .ai-setup-banner-close {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+  }
+}

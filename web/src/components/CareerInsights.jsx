@@ -33,17 +33,6 @@ export default function CareerInsights() {
             <strong>AI Settings</strong>
           </div>
         </NavLink>
-
-        <NavLink
-          to="/jobs"
-          className={({ isActive }) =>
-            `career-insight-link ${isActive ? "active" : ""}`
-          }
-        >
-          <div>
-            <strong>Jobs</strong>
-          </div>
-        </NavLink>
       </nav>
 
       {/* =====================================================
@@ -65,7 +54,7 @@ export default function CareerInsights() {
 
       <div className="insight-card">
         <div>
-          <span>INTERVIEW READINESS</span>
+          <span>REAL TIME JOB AGENT</span>
           <strong>Build your baseline</strong>
         </div>
       </div>

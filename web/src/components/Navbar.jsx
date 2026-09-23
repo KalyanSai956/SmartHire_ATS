@@ -15,6 +15,7 @@ export default function Navbar() {
   const links = [
     ["Dashboard", "/dashboard"],
     ["Resume ATS", "/analyze"],
+    ["Jobs", "/jobs"],
   ];
 
   async function logout() {
